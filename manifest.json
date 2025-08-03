@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Immersive Translation Word Extractor",
+  "version": "1.0",
+  "description": "Extracts words from Immersive Translate plugin and saves them to storage",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Export Words"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

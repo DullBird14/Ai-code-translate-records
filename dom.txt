@@ -1,0 +1,67 @@
+<div id="immersive-translate-modal-selection-root" style="all: initial">
+    #shadow-root(open)
+    <div class="immersive-translate-modal  notranslate " dir="ltr"
+        style="transform: translate(0px, 0px); position: fixed; top: 379px; left: 0px; display: block;">
+        <div class="immersive-translate-modal-title notranslate" style="cursor: move;">
+            <div class="immersive-translate-modal-title-left"><span class="logo"></span></div>
+            <div class="immersive-translate-modal-title-right"><span
+                    class="icon-wrapper-no-bg text-translate-icon header-icon">
+                    <div class=" " style="position: relative; pointer-events: all; display: inline-block; opacity: 1;">
+                        <div></div>
+                    </div>
+                </span><span class="icon-wrapper-no-bg header-icon"></span>
+                <div class="immersive-translate-dropdown">
+                    <div>
+                        <div class="icon-wrapper-no-bg menu-icon"></div>
+                    </div>
+                </div><span class="icon-wrapper-no-bg close-icon header-icon"></span>
+            </div>
+        </div>
+        <div class="immersive-translate-modal-body notranslate ">
+            <div class="translation-result-container">
+                <div class="word-dictionary">
+                    <div class="word-original">
+                        <div class="word-original-text">Code</div><span class="word-phonetic">/koʊd/</span><span
+                            class="icon-wrapper speaker-icon "></span>
+                    </div>
+                    <div>
+                        <div class="word-dictionary-item">
+                            <div class="word-dictionary-definition">
+                                <div class="word-dictionary-pos">n.</div>
+                                <div class="word-dictionary-meaning">代码，编码；密码，暗号；指令，程序</div>
+                            </div>
+                            <div class="word-example"><span>The <span class="highlight">code</span> is 1234.</span><span
+                                    class="word-example-target">密码是1234。</span></div>
+                        </div>
+                        <div class="word-dictionary-item">
+                            <div class="word-dictionary-definition">
+                                <div class="word-dictionary-pos">v.</div>
+                                <div class="word-dictionary-meaning">编码；把…编成密码</div>
+                            </div>
+                            <div class="word-example"><span>The message was <span class="highlight">code</span>d in a
+                                    secret
+                                    language.</span><span class="word-example-target">信息被用一种秘密语言编码。</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="word-translation">
+                    <div class="word-translation-text">代码<div class="translation-action"><span
+                                class="icon-wrapper speaker-icon "></span>
+                            <div class=" "
+                                style="position: relative; pointer-events: all; display: inline-block; opacity: 1;">
+                                <div>
+                                    <div class="icon-wrapper"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="word-contextual-meaning">在计算机科学中，代码通常指编程语言编写的指令集合；在日常用语中，代码也可以指某种规则或系统。</div>
+                </div>
+            </div>
+        </div>
+        <div class="feedback-action">
+            <div class="icon-wrapper-no-bg feedback-action-icon"></div>
+            <div class="icon-wrapper-no-bg feedback-action-icon"></div>
+        </div>
+    </div>
+</div>
