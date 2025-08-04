@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   const exportBtn = document.getElementById('exportBtn');
   const viewWordsBtn = document.getElementById('viewWordsBtn');
+  const settingsBtn = document.getElementById('settingsBtn');
   const wordList = document.getElementById('wordList');
   
   // Export words to a text file
@@ -74,6 +75,11 @@ document.addEventListener('DOMContentLoaded', function() {
       wordList.innerHTML = '<h3>已保存的单词:</h3>';
       wordList.appendChild(wordListElement);
     });
+  });
+  
+  // Open settings page
+  settingsBtn.addEventListener('click', function() {
+    chrome.runtime.openOptionsPage();
   });
   
   // Delete a word from storage
