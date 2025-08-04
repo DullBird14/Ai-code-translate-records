@@ -93,9 +93,9 @@ async function appendWordToFile(word) {
     // Check if File System Access API is supported
     if ('showSaveFilePicker' in window) {
       try {
-        // Try to get previously selected file handle from storage
-        const result = await chrome.storage.local.get(['fileHandle']);
-        let fileHandle = result.fileHandle;
+        // Get file handle from background script
+        let response = await chrome.runtime.sendMessage({ action: 'getFileHandle' });
+        let fileHandle = response.fileHandle;
         
         // If no file handle exists, prompt user to select a file
         if (!fileHandle) {
@@ -113,8 +113,8 @@ async function appendWordToFile(word) {
             }]
           });
           
-          // Store the file handle for future use
-          await chrome.storage.local.set({ fileHandle: fileHandle });
+          // Store the file handle in background script
+          await chrome.runtime.sendMessage({ action: 'setFileHandle', fileHandle: fileHandle });
         }
         
         // Verify the file handle is still valid
@@ -136,7 +136,7 @@ async function appendWordToFile(word) {
           // If there's a permission error, the file handle is no longer valid
           // Clear it and prompt user to select file again
           console.error('File handle is no longer valid:', permissionError);
-          await chrome.storage.local.remove(['fileHandle']);
+          await chrome.runtime.sendMessage({ action: 'clearFileHandle' });
           
           // Prompt user to select file again
           const settings = await chrome.storage.local.get(['defaultFilePath']);
@@ -153,7 +153,7 @@ async function appendWordToFile(word) {
           });
           
           // Store the new file handle
-          await chrome.storage.local.set({ fileHandle: newFileHandle });
+          await chrome.runtime.sendMessage({ action: 'setFileHandle', fileHandle: newFileHandle });
           
           // Try to write again with new file handle
           const writable = await newFileHandle.createWritable();
@@ -171,7 +171,7 @@ async function appendWordToFile(word) {
         
         // Only clear the stored file handle if it's not a user cancellation
         if (error.name !== 'AbortError') {
-          await chrome.storage.local.remove(['fileHandle']);
+          await chrome.runtime.sendMessage({ action: 'clearFileHandle' });
         }
       }
     } else {

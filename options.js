@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', function() {
           }]
         });
         
-        // Store the file handle
-        await chrome.storage.local.set({ fileHandle: fileHandle });
+        // Store the file handle in background script
+        await chrome.runtime.sendMessage({ action: 'setFileHandle', fileHandle: fileHandle });
         
         // Get the file name for display
         const file = await fileHandle.getFile();
