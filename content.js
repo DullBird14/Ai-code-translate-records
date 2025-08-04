@@ -97,10 +97,13 @@ async function appendWordToFile(word) {
         const result = await chrome.storage.local.get(['fileHandle']);
         let fileHandle = result.fileHandle;
         
-        // If no file handle exists, prompt user to select a file
+        // If no file handle exists, try to get default file path from settings
         if (!fileHandle) {
+          const settings = await chrome.storage.local.get(['defaultFilePath']);
+          // If default file path is set, we still need to prompt user to select the file once
+          // because we can't directly access a file without user interaction
           fileHandle = await window.showSaveFilePicker({
-            suggestedName: 'immersive_translate_words.txt',
+            suggestedName: settings.defaultFilePath || 'immersive_translate_words.txt',
             types: [{
               description: 'Text files',
               accept: {
