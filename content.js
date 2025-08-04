@@ -86,19 +86,31 @@ async function saveWord(word) {
   }
 }
 
+// Global variable to store file handle during session
+let fileHandle = null;
+
 // Function to append word to a local file using File System Access API
 async function appendWordToFile(word) {
   console.log('Appending word to local file:', word);
   try {
     // Check if File System Access API is supported
     if ('showSaveFilePicker' in window) {
-      try {
-        // Get file handle from background script
-        let response = await chrome.runtime.sendMessage({ action: 'getFileHandle' });
-        let fileHandle = response.fileHandle;
-        
-        // If no file handle exists, prompt user to select a file
-        if (!fileHandle) {
+      // Check if we already have a valid file handle
+      if (fileHandle) {
+        try {
+          // Test if the file handle is still valid by trying to get file properties
+          const file = await fileHandle.getFile();
+          console.log('File handle is valid, file name:', file.name);
+        } catch (permissionError) {
+          // File handle is no longer valid
+          console.error('File handle is no longer valid:', permissionError);
+          fileHandle = null;
+        }
+      }
+      
+      // If no valid file handle exists, prompt user to select a file
+      if (!fileHandle) {
+        try {
           // Get default file path from settings for suggested name
           const settings = await chrome.storage.local.get(['defaultFilePath']);
           const suggestedName = settings.defaultFilePath || 'immersive_translate_words.txt';
@@ -113,66 +125,41 @@ async function appendWordToFile(word) {
             }]
           });
           
-          // Store the file handle in background script
-          await chrome.runtime.sendMessage({ action: 'setFileHandle', fileHandle: fileHandle });
+          console.log('New file handle acquired');
+        } catch (error) {
+          // User cancelled the file picker or there was an error
+          console.error('Error selecting file:', error);
+          
+          // If it's not a user cancellation, clear the file handle
+          if (error.name !== 'AbortError') {
+            fileHandle = null;
+          }
+          
+          // Don't proceed with file writing
+          return;
         }
+      }
+      
+      // Write to the file
+      try {
+        // Get the file writer
+        const writable = await fileHandle.createWritable();
         
-        // Verify the file handle is still valid
-        try {
-          // Get the file writer
-          const writable = await fileHandle.createWritable();
-          
-          // Read existing content to append to it
-          const file = await fileHandle.getFile();
-          const existingContent = await file.text();
-          
-          // Append the new word to the file
-          const newContent = existingContent + word + '\n';
-          await writable.write(newContent);
-          await writable.close();
-          
-          console.log('Word appended to file successfully:', word);
-        } catch (permissionError) {
-          // If there's a permission error, the file handle is no longer valid
-          // Clear it and prompt user to select file again
-          console.error('File handle is no longer valid:', permissionError);
-          await chrome.runtime.sendMessage({ action: 'clearFileHandle' });
-          
-          // Prompt user to select file again
-          const settings = await chrome.storage.local.get(['defaultFilePath']);
-          const suggestedName = settings.defaultFilePath || 'immersive_translate_words.txt';
-          
-          const newFileHandle = await window.showSaveFilePicker({
-            suggestedName: suggestedName,
-            types: [{
-              description: 'Text files',
-              accept: {
-                'text/plain': ['.txt']
-              }
-            }]
-          });
-          
-          // Store the new file handle
-          await chrome.runtime.sendMessage({ action: 'setFileHandle', fileHandle: newFileHandle });
-          
-          // Try to write again with new file handle
-          const writable = await newFileHandle.createWritable();
-          const file = await newFileHandle.getFile();
-          const existingContent = await file.text();
-          const newContent = existingContent + word + '\n';
-          await writable.write(newContent);
-          await writable.close();
-          
-          console.log('Word appended to file successfully with new file handle:', word);
-        }
-      } catch (error) {
-        // User cancelled the file picker or there was an error
-        console.error('Error appending word to file:', error);
+        // Read existing content to append to it
+        const file = await fileHandle.getFile();
+        const existingContent = await file.text();
         
-        // Only clear the stored file handle if it's not a user cancellation
-        if (error.name !== 'AbortError') {
-          await chrome.runtime.sendMessage({ action: 'clearFileHandle' });
-        }
+        // Append the new word to the file
+        const newContent = existingContent + word + '\n';
+        await writable.write(newContent);
+        await writable.close();
+        
+        console.log('Word appended to file successfully:', word);
+      } catch (writeError) {
+        console.error('Error writing to file:', writeError);
+        
+        // Clear the file handle as it may be invalid
+        fileHandle = null;
       }
     } else {
       // Fallback to chrome.storage if File System Access API is not supported
