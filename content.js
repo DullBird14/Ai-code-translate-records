@@ -91,16 +91,22 @@ let fileHandle = null;
 
 // Function to append word to a local file using File System Access API
 async function appendWordToFile(word) {
-  console.log('Appending word to local file:', word);
+  console.log('=== appendWordToFile started ===');
+  console.log('Word to append:', word);
+  console.log('Current fileHandle exists:', !!fileHandle);
+  
   try {
     // Check if File System Access API is supported
-    if ('showSaveFilePicker' in window) {
+    if ('showOpenFilePicker' in window) {
+      console.log('File System Access API is supported');
+      
       // Check if we already have a valid file handle
       if (fileHandle) {
         try {
           // Test if the file handle is still valid by trying to get file properties
           const file = await fileHandle.getFile();
           console.log('File handle is valid, file name:', file.name);
+          console.log('File size:', file.size, 'bytes');
         } catch (permissionError) {
           // File handle is no longer valid
           console.error('File handle is no longer valid:', permissionError);
@@ -110,13 +116,15 @@ async function appendWordToFile(word) {
       
       // If no valid file handle exists, prompt user to select a file
       if (!fileHandle) {
+        console.log('No valid file handle, prompting user to select file');
         try {
           // Get default file path from settings for suggested name
           const settings = await chrome.storage.local.get(['defaultFilePath']);
           const suggestedName = settings.defaultFilePath || 'immersive_translate_words.txt';
+          console.log('Suggested file name:', suggestedName);
           
-          fileHandle = await window.showSaveFilePicker({
-            suggestedName: suggestedName,
+          // Use showOpenFilePicker to select an existing file
+          const [selectedFileHandle] = await window.showOpenFilePicker({
             types: [{
               description: 'Text files',
               accept: {
@@ -125,7 +133,10 @@ async function appendWordToFile(word) {
             }]
           });
           
+          fileHandle = selectedFileHandle;
           console.log('New file handle acquired');
+          const file = await fileHandle.getFile();
+          console.log('Selected file name:', file.name);
         } catch (error) {
           // User cancelled the file picker or there was an error
           console.error('Error selecting file:', error);
@@ -136,23 +147,33 @@ async function appendWordToFile(word) {
           }
           
           // Don't proceed with file writing
+          console.log('=== appendWordToFile ended (file selection failed) ===');
           return;
         }
       }
       
       // Write to the file
       try {
+        console.log('Starting file write operation');
+        
         // Get the file writer
         const writable = await fileHandle.createWritable();
+        console.log('Writable stream created');
         
         // Read existing content to append to it
         const file = await fileHandle.getFile();
         const existingContent = await file.text();
+        console.log('Existing file content length:', existingContent.length);
         
         // Append the new word to the file
         const newContent = existingContent + word + '\n';
+        console.log('New content to write:', newContent);
+        
         await writable.write(newContent);
+        console.log('Content written to file');
+        
         await writable.close();
+        console.log('Writable stream closed');
         
         console.log('Word appended to file successfully:', word);
       } catch (writeError) {
@@ -168,9 +189,11 @@ async function appendWordToFile(word) {
       // Get existing words from the dedicated file storage
       chrome.storage.local.get(['wordsFileContent'], function(result) {
         let fileContent = result.wordsFileContent || '';
+        console.log('Current storage content length:', fileContent.length);
         
         // Append the new word to the file content
         fileContent += word + '\n';
+        console.log('New storage content length:', fileContent.length);
         
         // Save the updated file content
         chrome.storage.local.set({ wordsFileContent: fileContent }, function() {
@@ -185,6 +208,8 @@ async function appendWordToFile(word) {
   } catch (error) {
     console.error('Error appending word to file:', error);
   }
+  
+  console.log('=== appendWordToFile ended ===');
 }
 
 // Function to periodically check for the modal (fallback approach)

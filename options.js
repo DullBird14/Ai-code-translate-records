@@ -24,14 +24,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Select file using File System Access API
   selectFileBtn.addEventListener('click', async function() {
-    if ('showSaveFilePicker' in window) {
+    if ('showOpenFilePicker' in window) {
       try {
-        // Get default file path from settings for suggested name
-        const settings = await chrome.storage.local.get(['defaultFilePath']);
-        const suggestedName = settings.defaultFilePath || 'immersive_translate_words.txt';
-        
-        const fileHandle = await window.showSaveFilePicker({
-          suggestedName: suggestedName,
+        const [fileHandle] = await window.showOpenFilePicker({
           types: [{
             description: 'Text files',
             accept: {
@@ -39,9 +34,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           }]
         });
-        
-        // Store the file handle in background script
-        await chrome.runtime.sendMessage({ action: 'setFileHandle', fileHandle: fileHandle });
         
         // Get the file name for display
         const file = await fileHandle.getFile();

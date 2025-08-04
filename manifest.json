@@ -5,7 +5,8 @@
   "description": "Extracts words from Immersive Translate plugin and saves them to storage",
   "permissions": [
     "storage",
-    "downloads"
+    "downloads",
+    "fileSystem"
   ],
   "action": {
     "default_popup": "popup.html",

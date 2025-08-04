@@ -20,21 +20,29 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Create file content (prefer the file content if available, otherwise use the words array)
       const content = fileContent || words.join('\n');
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
       
-      // Create temporary download link
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'immersive_translate_words.txt';
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 100);
+      // Check if File System Access API is supported
+      if ('showOpenFilePicker' in window) {
+        // Use File System Access API to select a file and write to it
+        selectAndWriteToFile(content);
+      } else {
+        // Fallback to download approach
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        // Create temporary download link
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'immersive_translate_words.txt';
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+      }
     });
   });
   
@@ -82,6 +90,23 @@ document.addEventListener('DOMContentLoaded', function() {
     chrome.runtime.openOptionsPage();
   });
   
+  // Clear cache button
+  document.getElementById('clearCacheBtn').addEventListener('click', function() {
+    if (confirm('确定要清空所有已保存的单词吗？此操作不可恢复。')) {
+      // Clear all stored words
+      chrome.storage.local.remove(['extractedWords', 'wordsFileContent'], function() {
+        if (chrome.runtime.lastError) {
+          console.error('Error clearing cache:', chrome.runtime.lastError);
+          alert('清空缓存失败: ' + chrome.runtime.lastError.message);
+        } else {
+          alert('单词缓存已清空！');
+          // Also clear the word list display if it's currently shown
+          wordList.innerHTML = '<p class="empty-message">没有找到已保存的单词。</p>';
+        }
+      });
+    }
+  });
+  
   // Delete a word from storage
   function deleteWord(index, element) {
     chrome.storage.local.get(['extractedWords'], function(result) {
@@ -101,5 +126,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     });
+  }
+  
+  // Function to select a file and write content to it using File System Access API
+  async function selectAndWriteToFile(content) {
+    try {
+      // Use showOpenFilePicker to select an existing file or create a new one
+      const [fileHandle] = await window.showSaveFilePicker({
+        types: [{
+          description: 'Text files',
+          accept: {
+            'text/plain': ['.txt']
+          }
+        }],
+        suggestedName: 'immersive_translate_words.txt'
+      });
+      
+      // Write to the file
+      const writable = await fileHandle.createWritable();
+      await writable.write(content);
+      await writable.close();
+      
+      alert('单词已成功导出到文件！');
+    } catch (error) {
+      // Handle user cancellation or errors
+      if (error.name !== 'AbortError') {
+        console.error('Error exporting to file:', error);
+        alert('导出文件失败: ' + error.message);
+      }
+    }
   }
 });
