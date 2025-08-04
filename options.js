@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const statusDiv = document.getElementById('status');
   
   // Load saved settings
-  chrome.storage.local.get(['defaultFilePath', 'fileHandle'], function(result) {
+  chrome.storage.local.get(['defaultFilePath'], function(result) {
     if (result.defaultFilePath) {
       defaultFilePathInput.value = result.defaultFilePath;
     }
@@ -26,8 +26,12 @@ document.addEventListener('DOMContentLoaded', function() {
   selectFileBtn.addEventListener('click', async function() {
     if ('showSaveFilePicker' in window) {
       try {
+        // Get default file path from settings for suggested name
+        const settings = await chrome.storage.local.get(['defaultFilePath']);
+        const suggestedName = settings.defaultFilePath || 'immersive_translate_words.txt';
+        
         const fileHandle = await window.showSaveFilePicker({
-          suggestedName: 'immersive_translate_words.txt',
+          suggestedName: suggestedName,
           types: [{
             description: 'Text files',
             accept: {
